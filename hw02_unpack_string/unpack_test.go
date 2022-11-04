@@ -2,9 +2,8 @@ package hw02unpackstring
 
 import (
 	"errors"
-	"testing"
-
 	"github.com/stretchr/testify/require"
+	"testing"
 )
 
 func TestUnpack(t *testing.T) {
@@ -12,19 +11,26 @@ func TestUnpack(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{input: "a4bc2d5e", expected: "aaaabccddddde"},
-		{input: "abccd", expected: "abccd"},
 		{input: "", expected: ""},
-		{input: "aaa0b", expected: "aab"},
-		// uncomment if task with asterisk completed
-		// {input: `qwe\4\5`, expected: `qwe45`},
-		// {input: `qwe\45`, expected: `qwe44444`},
-		// {input: `qwe\\5`, expected: `qwe\\\\\`},
-		// {input: `qwe\\\3`, expected: `qwe\3`},
+		{input: "a", expected: "a"},
+		{input: "aa", expected: "aa"},
+		{input: "abc", expected: "abc"},
+		{input: "a0", expected: ""},
+		{input: "a0", expected: ""},
+		{input: "a1", expected: "a"},
+		{input: "a2", expected: "aa"},
+		{input: "a3", expected: "aaa"},
+		{input: "a-1", expected: "a-"},
+		{input: "a-0", expected: "a"},
+		{input: "a2a", expected: "aaa"},
+		{input: "a3a", expected: "aaaa"},
+		{input: "a3c®", expected: "aaac®"},
+		{input: "abc4a2", expected: "abccccaa"},
+		{input: "a0b0c0d0", expected: ""},
 	}
 
 	for _, tc := range tests {
-		tc := tc
+		tc = tc
 		t.Run(tc.input, func(t *testing.T) {
 			result, err := Unpack(tc.input)
 			require.NoError(t, err)
@@ -34,9 +40,8 @@ func TestUnpack(t *testing.T) {
 }
 
 func TestUnpackInvalidString(t *testing.T) {
-	invalidStrings := []string{"3abc", "45", "aaa10b"}
-	for _, tc := range invalidStrings {
-		tc := tc
+	tests := []string{"0", "1", "2q", "01", "a01"}
+	for _, tc := range tests {
 		t.Run(tc, func(t *testing.T) {
 			_, err := Unpack(tc)
 			require.Truef(t, errors.Is(err, ErrInvalidString), "actual error %q", err)
