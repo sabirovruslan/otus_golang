@@ -1,6 +1,7 @@
 package hw03frequencyanalysis
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -44,9 +45,31 @@ var text = `Как видите, он  спускается  по  лестни�
 		В этот вечер...`
 
 func TestTop10(t *testing.T) {
-	t.Run("no words in empty string", func(t *testing.T) {
-		require.Len(t, Top10(""), 0)
-	})
+	cases := []struct {
+		actual   string
+		expected []string
+	}{
+		{actual: "", expected: []string{}},
+		{actual: "a", expected: []string{"a"}},
+		{actual: "ab", expected: []string{"ab"}},
+		{actual: "abc", expected: []string{"abc"}},
+		{actual: "abc ", expected: []string{"abc"}},
+		{actual: "abc a", expected: []string{"a", "abc"}},
+		{actual: "abc a b", expected: []string{"a", "abc", "b"}},
+		{actual: "abc a b ,", expected: []string{",", "a", "abc", "b"}},
+		{actual: "a b c d i f g r t y u", expected: []string{"a", "b", "c", "d", "f", "g", "i", "r", "t", "u"}},
+		{actual: "a a b", expected: []string{"a", "b"}},
+		{actual: "a b b", expected: []string{"b", "a"}},
+		{actual: "a b b c c c", expected: []string{"c", "b", "a"}},
+		{actual: "a c c b b", expected: []string{"b", "c", "a"}},
+	}
+
+	for i, tc := range cases {
+		tc := tc
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			require.Equal(t, tc.expected, Top10(tc.actual))
+		})
+	}
 
 	t.Run("positive test", func(t *testing.T) {
 		if taskWithAsteriskIsCompleted {
