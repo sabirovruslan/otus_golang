@@ -11,7 +11,7 @@ func Top10(input string) []string {
 		return result
 	}
 
-	wordMap := make(map[string]int, 0)
+	wordMap := make(map[string]int)
 	for _, word := range strings.Fields(input) {
 		if len(word) == 0 {
 			continue
@@ -19,7 +19,7 @@ func Top10(input string) []string {
 		wordMap[word]++
 	}
 
-	wordByFrequencyMap := make(map[int][]string, 0)
+	wordByFrequencyMap := make(map[int][]string)
 	for word, frequency := range wordMap {
 		wordByFrequencyMap[frequency] = append(wordByFrequencyMap[frequency], word)
 	}
