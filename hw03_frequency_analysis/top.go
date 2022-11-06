@@ -1,7 +1,6 @@
 package hw03frequencyanalysis
 
 import (
-	"fmt"
 	"sort"
 	"strings"
 )
@@ -12,23 +11,30 @@ func Top10(input string) []string {
 		return result
 	}
 
-	frequencyWordMap := make(map[string]int, 0)
+	wordMap := make(map[string]int, 0)
 	for _, word := range strings.Fields(input) {
 		if len(word) == 0 {
 			continue
 		}
-		frequencyWordMap[word]++
+		wordMap[word]++
 	}
 
-	for key, i := range frequencyWordMap {
-		fmt.Println(key, " = ", i)
-		result = append(result, key)
+	wordByFrequencyMap := make(map[int][]string, 0)
+	for word, frequency := range wordMap {
+		wordByFrequencyMap[frequency] = append(wordByFrequencyMap[frequency], word)
 	}
-	fmt.Println("-------------")
-	sort.Strings(result)
-	sort.Slice(result, func(i, j int) bool {
-		return frequencyWordMap[result[i]] > frequencyWordMap[result[j]]
-	})
+
+	keys := make([]int, 0)
+	for frequency := range wordByFrequencyMap {
+		keys = append(keys, frequency)
+	}
+	sort.Sort(sort.Reverse(sort.IntSlice(keys)))
+
+	for _, frequency := range keys {
+		words := wordByFrequencyMap[frequency]
+		sort.Strings(words)
+		result = append(result, words...)
+	}
 
 	if len(result) > 10 {
 		result = result[:10]
