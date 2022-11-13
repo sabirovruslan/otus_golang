@@ -156,42 +156,78 @@ func (s *ListTestSuite) TestRemoveMiddle() {
 	s.Equal(3, s.list.Back().Value)
 }
 
-func TestList(t *testing.T) {
-	//	t.Run("complex", func(t *testing.T) {
-	//		l := NewList()
-	//
-	//		l.PushFront(10) // [10]
-	//		l.PushBack(20)  // [10, 20]
-	//		l.PushBack(20)  // [10, 20]
-	//		l.PushBack(30)  // [10, 20, 30]
-	//		l.PushBack(30)  // [10, 20, 30]
-	//		require.Equal(t, 3, l.Len())
-	//		require.Equal(t, 3, l.Len())
-	//		require.Equal(t, 3, l.Len())
-	//
-	//		middle := l.Front().Next // 20
-	//		l.Remove(middle)         // [10, 30]
-	//		require.Equal(t, 2, l.Len())
-	//
-	//		for i, v := range [...]int{40, 50, 60, 70, 80} {
-	//			if i%2 == 0 {
-	//				l.PushFront(v)
-	//			} else {
-	//				l.PushBack(v)
-	//			}
-	//		} // [80, 60, 40, 10, 30, 50, 70]
-	//
-	//		require.Equal(t, 7, l.Len())
-	//		require.Equal(t, 80, l.Front().Value)
-	//		require.Equal(t, 70, l.Back().Value)
-	//
-	//		l.MoveToFront(l.Front()) // [80, 60, 40, 10, 30, 50, 70]
-	//		l.MoveToFront(l.Back())  // [70, 80, 60, 40, 10, 30, 50]
-	//
-	//		elems := make([]int, 0, l.Len())
-	//		for i := l.Front(); i != nil; i = i.Next {
-	//			elems = append(elems, i.Value.(int))
-	//		}
-	//		require.Equal(t, []int{70, 80, 60, 40, 10, 30, 50}, elems)
-	//	})
+func (s *ListTestSuite) TestMoveToFrontFirst() {
+	s.list.PushBack(1)
+	s.list.PushBack(2)
+	s.list.PushBack(3)
+
+	i := s.list.Front()
+	s.list.MoveToFront(i)
+	s.Equal(1, s.list.Front().Value)
+}
+
+func (s *ListTestSuite) TestMoveToFrontLast() {
+	s.list.PushBack(1)
+	s.list.PushBack(2)
+	s.list.PushBack(3)
+
+	i := s.list.Back()
+	s.list.MoveToFront(i)
+	s.Equal(3, s.list.Front().Value)
+	s.Equal(1, s.list.Front().Prev.Value)
+	s.Equal(2, s.list.Back().Value)
+	s.Equal(1, s.list.Back().Next.Value)
+	s.Nil(s.list.Front().Next)
+	s.Nil(s.list.Back().Prev)
+}
+
+func (s *ListTestSuite) TestMoveToFrontMiddle() {
+	s.list.PushBack(1)
+	s.list.PushBack(2)
+	s.list.PushBack(3)
+
+	i := s.list.Back().Next
+	s.list.MoveToFront(i)
+	s.Equal(2, s.list.Front().Value)
+	s.Equal(3, s.list.Back().Value)
+	s.Equal(1, s.list.Front().Prev.Value)
+	s.Equal(1, s.list.Back().Next.Value)
+	s.Nil(s.list.Front().Next)
+	s.Nil(s.list.Back().Prev)
+}
+
+func (s *ListTestSuite) Complex() {
+	s.list.PushFront(10) // [10]
+	s.list.PushBack(20)  // [10, 20]
+	s.list.PushBack(20)  // [10, 20]
+	s.list.PushBack(30)  // [10, 20, 30]
+	s.list.PushBack(30)  // [10, 20, 30]
+	s.Equal(3, s.list.Len())
+	s.Equal(3, s.list.Len())
+	s.Equal(3, s.list.Len())
+
+	middle := s.list.Front().Next // 20
+	s.list.Remove(middle)         // [10, 30]
+	s.Equal(2, s.list.Len())
+
+	for i, v := range [...]int{40, 50, 60, 70, 80} {
+		if i%2 == 0 {
+			s.list.PushFront(v)
+		} else {
+			s.list.PushBack(v)
+		}
+	} // [80, 60, 40, 10, 30, 50, 70]
+
+	s.Equal(7, s.list.Len())
+	s.Equal(80, s.list.Front().Value)
+	s.Equal(70, s.list.Back().Value)
+
+	s.list.MoveToFront(s.list.Front()) // [80, 60, 40, 10, 30, 50, 70]
+	s.list.MoveToFront(s.list.Back())  // [70, 80, 60, 40, 10, 30, 50]
+
+	elems := make([]int, 0, s.list.Len())
+	for i := s.list.Front(); i != nil; i = i.Next {
+		elems = append(elems, i.Value.(int))
+	}
+	s.Equal([]int{70, 80, 60, 40, 10, 30, 50}, elems)
 }
