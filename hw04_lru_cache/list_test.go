@@ -69,7 +69,6 @@ func (s *ListTestSuite) TestGetBack() {
 }
 
 func (s *ListTestSuite) TestPushFrontAndGetBack() {
-
 	s.list.PushFront(3)
 	s.list.PushFront(2)
 	s.list.PushFront(1)
@@ -156,6 +155,36 @@ func (s *ListTestSuite) TestRemoveMiddle() {
 	s.Equal(3, s.list.Back().Value)
 }
 
+func (s *ListTestSuite) TestPushFrontAndRemoveBack() {
+	s.list.PushFront(1)
+	s.list.PushFront(2)
+	s.list.PushFront(3)
+
+	s.list.PushFront(4)
+	s.list.Remove(s.list.Back())
+	s.Equal(s.list.Back().Value, 2)
+
+	s.list.PushFront(5)
+	s.list.Remove(s.list.Back())
+	s.Equal(s.list.Back().Value, 3)
+
+	s.list.MoveToFront(s.list.Back())
+	s.Equal(s.list.Front().Value, 3)
+	s.Equal(s.list.Back().Value, 4)
+
+	s.list.PushFront(6)
+	s.list.Remove(s.list.Back())
+	s.Equal(s.list.Back().Value, 5)
+
+	s.Equal(s.list.Len(), 3)
+	s.Equal(s.list.Front().Value, 6)
+	s.Equal(s.list.Front().Prev.Value, 3)
+	s.Equal(s.list.Front().Prev.Prev.Value, 5)
+	s.Equal(s.list.Back().Value, 5)
+	s.Equal(s.list.Back().Next.Value, 3)
+	s.Equal(s.list.Back().Next.Next.Value, 6)
+}
+
 func (s *ListTestSuite) TestMoveToFrontFirst() {
 	s.list.PushBack(1)
 	s.list.PushBack(2)
@@ -227,7 +256,9 @@ func (s *ListTestSuite) Complex() {
 
 	elems := make([]int, 0, s.list.Len())
 	for i := s.list.Front(); i != nil; i = i.Next {
-		elems = append(elems, i.Value.(int))
+		if value, ok := i.Value.(int); ok {
+			elems = append(elems, value)
+		}
 	}
 	s.Equal([]int{70, 80, 60, 40, 10, 30, 50}, elems)
 }

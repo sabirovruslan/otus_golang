@@ -43,10 +43,16 @@ func (s *CacheTestSuit) TestSetAndGet() {
 
 	_, ok = c.Get("1")
 	s.False(ok)
+}
+
+func (s *CacheTestSuit) TestClear() {
+	c := NewCache(2)
+	s.False(c.Set("1", 1))
+	s.False(c.Set("2", 2))
+	s.True(c.Set("1", 1))
 
 	c.Clear()
-	s.False(c.Set("4", 4))
-
+	s.False(c.Set("1", 1))
 }
 
 func (s *CacheTestSuit) TestValues() {

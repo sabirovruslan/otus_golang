@@ -2,10 +2,6 @@ package hw04lrucache
 
 type Key string
 
-func (k Key) String() string {
-	return string(k)
-}
-
 type Cache interface {
 	Set(key Key, value interface{}) bool
 	Get(key Key) (interface{}, bool)
@@ -18,40 +14,44 @@ type lruCache struct {
 	items    map[Key]*ListItem
 }
 
-func (c *lruCache) Set(key Key, value interface{}) bool {
-	if _, ok := c.Get(key); ok {
-		i := c.items[key]
+func (lru *lruCache) Set(key Key, value interface{}) bool {
+	if _, ok := lru.Get(key); ok {
+		i := lru.items[key]
 		i.Value.(*cacheItem).value = value
 		return true
 	}
 
-	if c.capacity == c.queue.Len() {
-		c.deleteItem(key)
+	cache := &cacheItem{key, value}
+	item := lru.queue.PushFront(cache)
+	lru.items[key] = item
+
+	if lru.queue.Len() > lru.capacity {
+		lru.deleteLastItem()
 	}
 
-	i := &ListItem{Value: &cacheItem{key, value}}
-	c.items[key] = i
-	c.queue.PushFront(i)
 	return false
 }
 
-func (c *lruCache) Get(key Key) (interface{}, bool) {
-	if i, ok := c.items[key]; ok {
-		c.queue.MoveToFront(i)
-		return i.Value.(*cacheItem).value, ok
+func (lru *lruCache) Get(key Key) (interface{}, bool) {
+	i, ok := lru.items[key]
+	if !ok {
+		return i, ok
 	}
-	return nil, false
+	lru.queue.MoveToFront(i)
+	return i.Value.(*cacheItem).value, ok
 }
 
-func (c *lruCache) Clear() {
-	c.items = make(map[Key]*ListItem, c.capacity)
-	c.queue = NewList()
+func (lru *lruCache) Clear() {
+	lru.items = make(map[Key]*ListItem, lru.capacity)
+	lru.queue = NewList()
 }
 
-func (c *lruCache) deleteItem(key Key) {
-	delete(c.items, "1")
-	lastItem := c.queue.Back()
-	c.queue.Remove(lastItem)
+func (lru *lruCache) deleteLastItem() {
+	lastItem := lru.queue.Back()
+	lru.queue.Remove(lastItem)
+	if item, ok := lastItem.Value.(*cacheItem); ok {
+		delete(lru.items, item.key)
+	}
 }
 
 type cacheItem struct {
