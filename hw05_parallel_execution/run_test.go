@@ -15,6 +15,12 @@ import (
 func TestRun(t *testing.T) {
 	defer goleak.VerifyNone(t)
 
+	t.Run("empty tasks", func(t *testing.T) {
+		tasks := make([]Task, 0)
+		require.Nil(t, Run(tasks, 0, 0))
+		require.Nil(t, Run(tasks, 10, 0))
+	})
+
 	t.Run("if were errors in first M tasks, than finished not more N+M tasks", func(t *testing.T) {
 		tasksCount := 50
 		tasks := make([]Task, 0, tasksCount)
