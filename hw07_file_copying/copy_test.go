@@ -73,5 +73,4 @@ func (s *copySuite) TestCopy() {
 	s.Equal(Copy("testdata/input.txt", "/tmp/out.txt", infoIn.Size(), 0), nil)
 	infoOut, _ = os.Stat("/tmp/out.txt")
 	s.Equal(infoOut.Size(), int64(0))
-
 }

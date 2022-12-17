@@ -47,7 +47,7 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	for currentSize < limit {
 		n, err := inFile.ReadAt(buf, offset)
 		if err != nil {
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				break
 			}
 			return err
