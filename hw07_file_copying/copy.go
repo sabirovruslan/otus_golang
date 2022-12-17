@@ -4,6 +4,8 @@ import (
 	"errors"
 	"io"
 	"os"
+
+	"github.com/cheggaaa/pb/v3"
 )
 
 var (
@@ -42,6 +44,10 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	}
 	defer outFile.Close()
 
+	bar := pb.Start64(limit)
+	defer bar.Finish()
+
+	bar.Start()
 	buf := make([]byte, 1)
 	var currentSize int64
 	for currentSize < limit {
@@ -58,6 +64,7 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 		}
 		currentSize += int64(n)
 		offset += int64(n)
+		bar.Increment()
 	}
 
 	return nil
