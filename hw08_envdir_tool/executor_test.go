@@ -23,4 +23,9 @@ func (s *runCmdSuite) TestRunCmd() {
 
 	command = []string{"ls", "la"}
 	s.NotEqual(RunCmd(command, nil), 0)
+
+	command = []string{"echo", "ENV"}
+	envs, err := ReadDir("testdata/env")
+	s.Equal(err, nil)
+	s.Equal(RunCmd(command, envs), 0)
 }
