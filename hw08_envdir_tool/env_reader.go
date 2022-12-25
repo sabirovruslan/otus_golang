@@ -36,7 +36,7 @@ func ReadDir(dir string) (Environment, error) {
 		if err != nil {
 			return nil, err
 		}
-		line = bytes.Replace(line, []byte("\x00"), []byte("\n"), -1)
+		line = bytes.ReplaceAll(line, []byte("\x00"), []byte("\n"))
 		v := strings.TrimRight(string(line), " ")
 		if len(v) == 0 {
 			envs[entry.Name()] = EnvValue{"", true}
