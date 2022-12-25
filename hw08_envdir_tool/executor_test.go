@@ -22,5 +22,5 @@ func (s *runCmdSuite) TestRunCmd() {
 	s.Equal(RunCmd(command, nil), 0)
 
 	command = []string{"ls", "la"}
-	s.Equal(RunCmd(command, nil), 1)
+	s.NotEqual(RunCmd(command, nil), 0)
 }
