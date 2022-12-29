@@ -68,23 +68,17 @@ func Validate(v interface{}) error {
 }
 
 func buildFieldValidator(tagValue string, rv reflect.Value) (Validator, error) {
-	var nErr NotSupportedType
-	switch rk := rv.Kind(); rk {
-	case reflect.String:
+	switch rk := rv.Type().String(); rk {
+	case "string":
 		return buildFieldStringValidatorBy(tagValue)
-	case reflect.Int:
+	case "int":
 		return buildFieldIntValidatorBy(tagValue)
-	case reflect.Slice:
-		switch vk := rv.Index(0).Kind(); vk {
-		case reflect.String:
-			return buildFieldStringValidatorBy(tagValue)
-		case reflect.Int:
-			return buildFieldIntValidatorBy(tagValue)
-		default:
-			errors.As(fmt.Errorf("not supported type in slice: %s", vk), &nErr)
-			return nil, nErr
-		}
+	case "[]string":
+		return buildFieldStringValidatorBy(tagValue)
+	case "[]int":
+		return buildFieldIntValidatorBy(tagValue)
 	default:
+		var nErr NotSupportedType
 		errors.As(fmt.Errorf("not supported type: %s", rk), &nErr)
 		return nil, nErr
 	}
