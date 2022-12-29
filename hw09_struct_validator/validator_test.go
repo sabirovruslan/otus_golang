@@ -74,6 +74,7 @@ func (s *validationSuite) fakeUser() User {
 		Email:  faker.Email(),
 		Role:   "admin",
 		Phones: []string{"724891571063"},
+		meta:   []byte{},
 	}
 }
 
@@ -135,7 +136,6 @@ func (s *validationSuite) TestValidate() {
 	user := s.fakeUser()
 	errs = Validate(user)
 	s.Equal(errs, nil)
-
 }
 
 func (s *validationSuite) TestValidatinErrors() {
@@ -144,26 +144,3 @@ func (s *validationSuite) TestValidatinErrors() {
 	vErrors = append(vErrors, err)
 	s.EqualError(vErrors, "test: Error test\n")
 }
-
-//func TestValidate(t *testing.T) {
-//	tests := []struct {
-//		in          interface{}
-//		expectedErr error
-//	}{
-//		{
-//			// Place your code here.
-//		},
-//		// ...
-//		// Place your code here.
-//	}
-//
-//	for i, tt := range tests {
-//		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
-//			tt := tt
-//			t.Parallel()
-//
-//			// Place your code here.
-//			_ = tt
-//		})
-//	}
-//}

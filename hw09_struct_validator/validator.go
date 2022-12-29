@@ -1,6 +1,7 @@
 package hw09structvalidator
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -67,6 +68,7 @@ func Validate(v interface{}) error {
 }
 
 func buildFieldValidator(tagValue string, rv reflect.Value) (Validator, error) {
+	var nErr NotSupportedType
 	switch rk := rv.Kind(); rk {
 	case reflect.String:
 		return buildFieldStringValidatorBy(tagValue)
@@ -79,12 +81,13 @@ func buildFieldValidator(tagValue string, rv reflect.Value) (Validator, error) {
 		case reflect.Int:
 			return buildFieldIntValidatorBy(tagValue)
 		default:
-			return nil, fmt.Errorf("not supported type in slice: %s", vk).(NotSupportedType)
+			errors.As(fmt.Errorf("not supported type in slice: %s", vk), &nErr)
+			return nil, nErr
 		}
 	default:
-		return nil, fmt.Errorf("not supported type: %s", rk).(NotSupportedType)
+		errors.As(fmt.Errorf("not supported type: %s", rk), &nErr)
+		return nil, nErr
 	}
-
 }
 
 func buildFieldStringValidatorBy(tagValue string) (Validator, error) {
@@ -169,7 +172,12 @@ type lenStringValidator struct {
 }
 
 func (v *lenStringValidator) validate(value interface{}) error {
-	if len(value.(string)) < v.size {
+	var val string
+	val, ok := value.(string)
+	if !ok {
+		return fmt.Errorf("type assertion error %v", value)
+	}
+	if len(val) < v.size {
 		return fmt.Errorf("size less than %v", v.size)
 	}
 	return nil
@@ -193,7 +201,12 @@ type regStringValidator struct {
 }
 
 func (v *regStringValidator) validate(value interface{}) error {
-	if res := v.re.MatchString(value.(string)); res {
+	var val string
+	val, ok := value.(string)
+	if !ok {
+		return fmt.Errorf("type assertion error %v", value)
+	}
+	if res := v.re.MatchString(val); res {
 		return nil
 	}
 	return fmt.Errorf("not match: %v", value)
@@ -204,7 +217,12 @@ type minIntValidator struct {
 }
 
 func (v *minIntValidator) validate(value interface{}) error {
-	if value.(int) < v.min {
+	var val int
+	val, ok := value.(int)
+	if !ok {
+		return fmt.Errorf("type assertion error %v", value)
+	}
+	if val < v.min {
 		return fmt.Errorf("value less than: %v", v.min)
 	}
 	return nil
@@ -215,7 +233,12 @@ type maxIntValidator struct {
 }
 
 func (v *maxIntValidator) validate(value interface{}) error {
-	if value.(int) > v.max {
+	var val int
+	val, ok := value.(int)
+	if !ok {
+		return fmt.Errorf("type assertion error %v", value)
+	}
+	if val > v.max {
 		return fmt.Errorf("value mush more than: %v", v.max)
 	}
 	return nil
