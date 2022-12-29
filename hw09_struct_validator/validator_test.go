@@ -5,19 +5,18 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/bxcodec/faker/v4"
 	"github.com/stretchr/testify/suite"
 )
-
-type UserRole string
 
 // Test the function on different structures and other types.
 type (
 	User struct {
-		ID     string `json:"id" validate:"len:36"`
+		ID     string `json:"id" validate:"len:32"`
 		Name   string
 		Age    int      `validate:"min:18|max:50"`
 		Email  string   `validate:"regexp:^\\w+@\\w+\\.\\w+$"`
-		Role   UserRole `validate:"in:admin,stuff"`
+		Role   string   `validate:"in:admin,stuff"`
 		Phones []string `validate:"len:11"`
 		meta   json.RawMessage
 	}
@@ -34,10 +33,20 @@ type (
 		Value string `validate:"regexp:\\d+"`
 	}
 
-	Token struct {
-		Header    []byte
-		Payload   []byte
-		Signature []byte
+	SliceString struct {
+		Value []string `validate:"len:3"`
+	}
+
+	IntMin struct {
+		Value int `validate:"min:10"`
+	}
+
+	IntMax struct {
+		Value int `validate:"max:10"`
+	}
+
+	IntIn struct {
+		Value int `validate:"in:10,2,40"`
 	}
 
 	Response struct {
@@ -54,6 +63,18 @@ type validationSuite struct {
 
 func TestRunValidationSuite(t *testing.T) {
 	suite.Run(t, new(validationSuite))
+}
+
+func (s *validationSuite) fakeUser() User {
+	pAge, _ := faker.RandomInt(18, 50)
+	return User{
+		ID:     faker.UUIDDigit(),
+		Name:   faker.Name(),
+		Age:    pAge[0],
+		Email:  faker.Email(),
+		Role:   "admin",
+		Phones: []string{"724891571063"},
+	}
 }
 
 func (s *validationSuite) TestValidateTypeError() {
@@ -85,6 +106,35 @@ func (s *validationSuite) TestValidate() {
 	s.Equal(errs, nil)
 	errs = Validate(StringRegexp{"test"})
 	s.EqualError(errs, "Value: not match: test\n")
+
+	errs = Validate(IntMin{10})
+	s.Equal(errs, nil)
+	errs = Validate(IntMin{1})
+	s.EqualError(errs, "Value: value less than: 10\n")
+
+	errs = Validate(IntMax{10})
+	s.Equal(errs, nil)
+	errs = Validate(IntMax{20})
+	s.EqualError(errs, "Value: value mush more than: 10\n")
+
+	errs = Validate(IntIn{10})
+	s.Equal(errs, nil)
+	errs = Validate(IntIn{20})
+	s.EqualError(errs, "Value: value '20' is not included in set\n")
+
+	errs = Validate(SliceString{[]string{"ttt", "iii"}})
+	s.Equal(errs, nil)
+	errs = Validate(SliceString{[]string{"tt", "ii"}})
+	s.EqualError(errs, "Value: size less than 3\nValue: size less than 3\n")
+
+	errs = Validate(Response{200, "test"})
+	s.Equal(errs, nil)
+	errs = Validate(Response{201, "test"})
+	s.EqualError(errs, "Code: value '201' is not included in set\n")
+
+	user := s.fakeUser()
+	errs = Validate(user)
+	s.Equal(errs, nil)
 
 }
 

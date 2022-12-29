@@ -1,7 +1,6 @@
 package hw09structvalidator
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -10,8 +9,6 @@ import (
 )
 
 type NotSupportedType error
-
-var notSupportedType NotSupportedType
 
 type ValidationError struct {
 	Field string
@@ -49,11 +46,8 @@ func Validate(v interface{}) error {
 			continue
 		}
 
-		fv, err := buildFieldValidator(tValidate, vField.Kind())
+		fv, err := buildFieldValidator(tValidate, vField)
 		if err != nil {
-			if errors.Is(err, notSupportedType) {
-				continue
-			}
 			return err
 		}
 
@@ -72,12 +66,21 @@ func Validate(v interface{}) error {
 	return nil
 }
 
-func buildFieldValidator(tagValue string, rk reflect.Kind) (Validator, error) {
-	switch rk {
+func buildFieldValidator(tagValue string, rv reflect.Value) (Validator, error) {
+	switch rk := rv.Kind(); rk {
 	case reflect.String:
 		return buildFieldStringValidatorBy(tagValue)
 	case reflect.Int:
-		return nil, nil
+		return buildFieldIntValidatorBy(tagValue)
+	case reflect.Slice:
+		switch vk := rv.Index(0).Kind(); vk {
+		case reflect.String:
+			return buildFieldStringValidatorBy(tagValue)
+		case reflect.Int:
+			return buildFieldIntValidatorBy(tagValue)
+		default:
+			return nil, fmt.Errorf("not supported type in slice: %s", vk).(NotSupportedType)
+		}
 	default:
 		return nil, fmt.Errorf("not supported type: %s", rk).(NotSupportedType)
 	}
@@ -107,6 +110,46 @@ func buildFieldStringValidatorBy(tagValue string) (Validator, error) {
 				return nil, err
 			}
 			v := regStringValidator{reg}
+			rValidators = append(rValidators, &v)
+		default:
+			return nil, fmt.Errorf("not supported validator: %s", sv[0])
+		}
+	}
+	validator := fieldValidator{rValidators}
+
+	return &validator, nil
+}
+
+func buildFieldIntValidatorBy(tagValue string) (Validator, error) {
+	tValidators := strings.Split(tagValue, "|")
+	rValidators := make([]TypeValidator, 0)
+	for _, tv := range tValidators {
+		sv := strings.Split(tv, ":")
+		switch sv[0] {
+		case "min":
+			min, err := strconv.Atoi(sv[1])
+			if err != nil {
+				return nil, err
+			}
+			v := minIntValidator{min}
+			rValidators = append(rValidators, &v)
+		case "max":
+			max, err := strconv.Atoi(sv[1])
+			if err != nil {
+				return nil, err
+			}
+			v := maxIntValidator{max}
+			rValidators = append(rValidators, &v)
+		case "in":
+			options := make([]int, 0)
+			for _, o := range strings.Split(sv[1], ",") {
+				i, err := strconv.Atoi(o)
+				if err != nil {
+					return nil, fmt.Errorf("option '%v' is not int", o)
+				}
+				options = append(options, i)
+			}
+			v := inIntValidator{options}
 			rValidators = append(rValidators, &v)
 		default:
 			return nil, fmt.Errorf("not supported validator: %s", sv[0])
@@ -156,6 +199,41 @@ func (v *regStringValidator) validate(value interface{}) error {
 	return fmt.Errorf("not match: %v", value)
 }
 
+type minIntValidator struct {
+	min int
+}
+
+func (v *minIntValidator) validate(value interface{}) error {
+	if value.(int) < v.min {
+		return fmt.Errorf("value less than: %v", v.min)
+	}
+	return nil
+}
+
+type maxIntValidator struct {
+	max int
+}
+
+func (v *maxIntValidator) validate(value interface{}) error {
+	if value.(int) > v.max {
+		return fmt.Errorf("value mush more than: %v", v.max)
+	}
+	return nil
+}
+
+type inIntValidator struct {
+	options []int
+}
+
+func (v *inIntValidator) validate(value interface{}) error {
+	for _, o := range v.options {
+		if o == value {
+			return nil
+		}
+	}
+	return fmt.Errorf("value '%v' is not included in set", value)
+}
+
 type Validator interface {
 	Run(v interface{}) []error
 }
@@ -167,11 +245,27 @@ type fieldValidator struct {
 func (sv *fieldValidator) Run(v interface{}) []error {
 	errs := make([]error, 0)
 	for _, tv := range sv.typeValidators {
-		err := tv.validate(v)
-		if err != nil {
-			errs = append(errs, err)
+		switch v := v.(type) {
+		case []string:
+			for _, i := range v {
+				err := tv.validate(i)
+				if err != nil {
+					errs = append(errs, err)
+				}
+			}
+		case []int:
+			for _, i := range v {
+				err := tv.validate(i)
+				if err != nil {
+					errs = append(errs, err)
+				}
+			}
+		default:
+			err := tv.validate(v)
+			if err != nil {
+				errs = append(errs, err)
+			}
 		}
 	}
-
 	return errs
 }
