@@ -41,7 +41,7 @@ func getUserEmails(r io.Reader) (userEmails, error) {
 			}
 			return result, nil
 		}
-		if err = json.Unmarshal([]byte(line), &user); err != nil {
+		if err = json.Unmarshal(line, &user); err != nil {
 			return result, err
 		}
 		result[i] = user
