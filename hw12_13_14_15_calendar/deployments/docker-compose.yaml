@@ -1,1 +1,14 @@
-version: "3"
+version: "3.9"
+
+services:
+  calendar-db:
+    container_name: "calendar-db" 
+    image: "postgres:13.2-alpine"
+    environment:
+      POSTGRES_PASSWORD: calendar
+      POSTGRES_USER: calendar 
+      POSTGRES_DB: calendar 
+    volumes:
+      - "./volumes/calendar-db:/var/lib/postgresql/data"
+    ports:
+      - "5432:5432"
