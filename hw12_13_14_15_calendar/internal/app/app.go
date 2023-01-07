@@ -4,7 +4,9 @@ import (
 	"context"
 )
 
-type App struct { // TODO
+type App struct {
+	logger  Logger
+	storage Storage
 }
 
 type Logger interface { // TODO
@@ -14,7 +16,10 @@ type Storage interface { // TODO
 }
 
 func New(logger Logger, storage Storage) *App {
-	return &App{}
+	return &App{
+		logger:  logger,
+		storage: storage,
+	}
 }
 
 func (a *App) CreateEvent(ctx context.Context, id, title string) error {

@@ -56,6 +56,7 @@ func main() {
 		if err := server.Stop(ctx); err != nil {
 			logg.Error("failed to stop http server: " + err.Error())
 		}
+		logg.Info("calendar shutdown...")
 	}()
 
 	logg.Info("calendar is running...")
