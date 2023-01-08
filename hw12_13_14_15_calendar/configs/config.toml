@@ -1,5 +1,20 @@
+[app]
+addr = ":8080"
+
 [logger]
 level = "DEBUG"
+
+[storage]
+type = "sql"
+
+[storage.database]
+dirMigrate = "migrations"
+dialect = "postgres"
+host = "localhost"
+port = 5432
+name = "calendar"
+user = "calendar"
+password = "calendar"
 
 # TODO
 # ...

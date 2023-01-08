@@ -7,8 +7,8 @@ type Storage struct {
 	mu sync.RWMutex
 }
 
-func New() *Storage {
-	return &Storage{}
+func New() (*Storage, error) {
+	return &Storage{}, nil
 }
 
 // TODO

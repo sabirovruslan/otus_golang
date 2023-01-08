@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"flag"
+	"github.com/sabirovruslan/otus_golang/hw12_13_14_15_calendar/internal/migrate"
+	sqlstorage "github.com/sabirovruslan/otus_golang/hw12_13_14_15_calendar/internal/storage/sql"
+
 	"log"
 	"os"
 	"os/signal"
@@ -10,9 +13,9 @@ import (
 	"time"
 
 	"github.com/sabirovruslan/otus_golang/hw12_13_14_15_calendar/internal/app"
+	"github.com/sabirovruslan/otus_golang/hw12_13_14_15_calendar/internal/config"
 	"github.com/sabirovruslan/otus_golang/hw12_13_14_15_calendar/internal/logger"
 	internalhttp "github.com/sabirovruslan/otus_golang/hw12_13_14_15_calendar/internal/server/http"
-	memorystorage "github.com/sabirovruslan/otus_golang/hw12_13_14_15_calendar/internal/storage/memory"
 	"github.com/spf13/viper"
 )
 
@@ -27,19 +30,31 @@ func main() {
 		return
 	}
 
-	config := NewConfig()
+	conf := config.NewConfig()
 	viper.SetConfigFile(*configFile)
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("failed read config file: %v", configFile)
 	}
-	if err := viper.Unmarshal(&config); err != nil {
+	if err := viper.Unmarshal(&conf); err != nil {
 		log.Fatalf("unable to decode into struct, %v", err)
 	}
 
-	logg := logger.New(config.Logger.Level)
+	logg := logger.New(conf.Logger.Level)
 
-	storage := memorystorage.New()
-	calendar := app.New(logg, storage)
+	migrator, err := migrate.NewPgMigrate(&conf.Storage.Database)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := migrator.Run(); err != nil {
+		log.Fatal(err)
+	}
+
+	store, err := sqlstorage.New(&conf.Storage.Database)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	calendar := app.New(logg, store)
 
 	server := internalhttp.NewServer(logg, calendar)
 
